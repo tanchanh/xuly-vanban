@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: white;
+            /* Ensure the iframe has a white background */
+        }
+    </style>
+</head>
+
+<body>
+    <!DOCTYPE html>
+    <html lang="vi">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chuyển Đổi Văn Bản - D.T.Chánh</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            :root {
+                --bg-color: #f7f9fc;
+                --container-bg: #ffffff;
+                --border-color: #e0e0e0;
+                --text-color: #333333;
+                --primary-color: #007bff;
+                --gray-color: #6c757d;
+                --button-hover: #0056b3;
+                --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            }
+
+            body {
+                font-family: var(--font-family);
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                line-height: 1.6;
+                padding: 2rem 2rem 4rem 2rem; /* Thêm padding-bottom cho footer */
+                margin: 0;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-bottom: 1.5rem;
+            }
+
+            .input-area-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 2rem;
+            }
+
+            .input-section {
+                position: relative;
+                width: 100%;
+            }
+
+            #inputText {
+                width: 100%;
+                height: 200px;
+                padding: 1rem;
+                font-size: 1.2rem;
+                font-family: var(--font-family);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                resize: vertical;
+                transition: border-color 0.3s;
+            }
+
+            #inputText:focus {
+                outline: none;
+                border-color: var(--primary-color);
+            }
+
+            #clearButton {
+                background-color: var(--gray-color);
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                font-size: 1.2rem;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+                width: fit-content;
+            }
+
+            #clearButton:hover {
+                background-color: #5a6268;
+            }
+
+            .counters {
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
+                font-size: 0.9em;
+                color: #999;
+                text-align: right;
+            }
+
+            .output-section {
+                margin-bottom: 1.5rem;
+            }
+
+            .output-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.5rem;
+            }
+
+            .output-header h2 {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin: 0;
+            }
+
+            .copy-btn {
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 0.4rem 0.8rem;
+                font-size: 1.2rem;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .copy-btn:hover {
+                background-color: var(--button-hover);
+            }
+
+            .output-box {
+                background: #f0f4f8;
+                padding: 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                font-size: 1.2rem;
+                font-family: var(--font-family);
+            }
+
+            .toast {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: #4CAF50;
+                color: white;
+                text-align: center;
+                padding: 15px 30px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.5s ease-in-out;
+            }
+
+            .toast.show {
+                opacity: 1;
+            }
+
+            /* Footer styling */
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 1.5rem;
+                box-sizing: border-box;
+                background-color: rgba(247, 249, 252, 0.9); /* Đồng bộ với --bg-color */
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                font-size: 0.95rem;
+                color: #4b5563;
+                border-top: 1px solid rgba(229, 231, 235, 0.8);
+                z-index: 1000;
+            }
+
+            .footer .author {
+                text-align: left;
+            }
+
+            .footer .phone {
+                text-align: right;
+            }
+
+            @media (max-width: 480px) {
+                .footer {
+                    padding: 0.5rem 1rem;
+                    font-size: 0.85rem;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="toastMessage" class="toast"></div>
+        <h1>Chuyển Đổi Văn Bản</h1>
+        <div class="input-area-wrapper">
+            <div class="input-section">
+                <textarea id="inputText" placeholder="Nhập văn bản tiếng Việt của bạn vào đây..." autofocus></textarea>
+                <div class="counters">
+                    <div id="charCount">0 ký tự</div>
+                    <div id="wordCount">0 từ</div>
+                </div>
+            </div>
+            <button id="clearButton">Xóa</button>
+        </div>
+        <div class="output-container">
+            <div class="output-section">
+                <div class="output-header">
+                    <h2>1. Tạo Hashtag cho dòng cuối</h2>
+                    <button class="copy-btn" data-target="outputHashtag">Sao chép</button>
+                </div>
+                <div id="outputHashtag" class="output-box"></div>
+            </div>
+            <div class="output-section">
+                <div class="output-header">
+                    <h2>2. Chuyển thành chữ IN HOA</h2>
+                    <button class="copy-btn" data-target="outputUppercase">Sao chép</button>
+                </div>
+                <div id="outputUppercase" class="output-box"></div>
+            </div>
+            <div class="output-section">
+                <div class="output-header">
+                    <h2>3. Chuyển thành chữ thường</h2>
+                    <button class="copy-btn" data-target="outputLowercase">Sao chép</button>
+                </div>
+                <div id="outputLowercase" class="output-box"></div>
+            </div>
+            <div class="output-section">
+                <div class="output-header">
+                    <h2>4. Viết hoa chữ cái đầu mỗi từ</h2>
+                    <button class="copy-btn" data-target="outputTitleCase">Sao chép</button>
+                </div>
+                <div id="outputTitleCase" class="output-box"></div>
+            </div>
+            <div class="output-section">
+                <div class="output-header">
+                    <h2>5. Đổi thành tên file hợp lệ</h2>
+                    <button class="copy-btn" data-target="outputFilename">Sao chép</button>
+                </div>
+                <div id="outputFilename" class="output-box"></div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <span class="author"><strong>D.T.Chánh</strong></span>
+            <span class="phone"><strong>0913.150.370</strong></span>
+        </footer>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const inputText = document.getElementById('inputText');
+                const charCount = document.getElementById('charCount');
+                const wordCount = document.getElementById('wordCount');
+                const clearButton = document.getElementById('clearButton');
+                const outputHashtag = document.getElementById('outputHashtag');
+                const outputUppercase = document.getElementById('outputUppercase');
+                const outputLowercase = document.getElementById('outputLowercase');
+                const outputTitleCase = document.getElementById('outputTitleCase');
+                const outputFilename = document.getElementById('outputFilename');
+                const copyButtons = document.querySelectorAll('.copy-btn');
+                const toastMessage = document.getElementById('toastMessage');
+
+                function showToast(message) {
+                    toastMessage.textContent = message;
+                    toastMessage.classList.add('show');
+                    setTimeout(() => {
+                        toastMessage.classList.remove('show');
+                    }, 2000);
+                }
+
+                function toHashtag(text) {
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length === 0) return text;
+                    const lastLine = lines[lines.length - 1];
+                    const otherLines = text.split('\n').slice(0, -1).join('\n');
+                    const processedLastLine = lastLine
+                        .replace(/\s{2,}/g, ' ')
+                        .replace(/[#,.!?;:]/g, '')
+                        .trim()
+                        .split(' ')
+                        .map(word => `#${word}`)
+                        .join(' ');
+                    if (otherLines) {
+                        return `${otherLines}\n${processedLastLine}`;
+                    } else {
+                        return processedLastLine;
+                    }
+                }
+
+                function toTitleCase(text) {
+                    const lowerText = text.toLowerCase();
+                    let result = '';
+                    let newWord = true;
+                    for (let i = 0; i < lowerText.length; i++) {
+                        const char = lowerText[i];
+                        if (newWord && char.match(/[\p{L}\p{N}]/u)) {
+                            result += char.toUpperCase();
+                            newWord = false;
+                        } else {
+                            result += char;
+                        }
+                        if (char.match(/[\s\n\t.,?!:;]/) || char.match(/[^\p{L}\p{N}]/u)) {
+                            newWord = true;
+                        }
+                    }
+                    return result;
+                }
+
+                function toValidFilename(text) {
+                    const invalidChars = /[<>:"/\\|?*\x00-\x1F]/g;
+                    return text.replace(invalidChars, ' ')
+                        .replace(/\s{2,}/g, ' ')
+                        .trim();
+                }
+
+                function countWords(text) {
+                    const trimmedText = text.trim();
+                    if (!trimmedText) return 0;
+                    return trimmedText.split(/\s+/).filter(word => word.length > 0).length;
+                }
+
+                function updateConversions() {
+                    const text = inputText.value;
+                    charCount.textContent = `${text.length} ký tự`;
+                    wordCount.textContent = `${countWords(text)} từ`;
+                    outputHashtag.textContent = toHashtag(text);
+                    outputUppercase.textContent = text.toUpperCase();
+                    outputLowercase.textContent = text.toLowerCase();
+                    outputTitleCase.textContent = toTitleCase(text);
+                    outputFilename.textContent = toValidFilename(text);
+                }
+
+                inputText.addEventListener('input', updateConversions);
+                clearButton.addEventListener('click', () => {
+                    inputText.value = '';
+                    updateConversions();
+                });
+                copyButtons.forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const targetId = event.target.dataset.target;
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            const textToCopy = targetElement.textContent || targetElement.innerText;
+                            if (navigator.clipboard && window.isSecureContext) {
+                                navigator.clipboard.writeText(textToCopy)
+                                    .then(() => {
+                                        showToast('Đã sao chép vào clipboard!');
+                                    })
+                                    .catch(err => {
+                                        console.error('Lỗi khi sao chép:', err);
+                                    });
+                            } else {
+                                const tempTextArea = document.createElement('textarea');
+                                tempTextArea.value = textToCopy;
+                                document.body.appendChild(tempTextArea);
+                                tempTextArea.select();
+                                try {
+                                    document.execCommand('copy');
+                                    showToast('Đã sao chép vào clipboard!');
+                                } catch (err) {
+                                    console.error('Lỗi khi sao chép:', err);
+                                }
+                                document.body.removeChild(tempTextArea);
+                            }
+                        }
+                    });
+                });
+                updateConversions();
+            });
+        </script>
+    </body>
+
+    </html>
+
+
+
+    <script>
+
+    </script>
+</body>
+
+</html>
