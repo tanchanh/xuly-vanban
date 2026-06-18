@@ -306,22 +306,12 @@
             }
 
             function toTitleCase(text) {
-                const lowerText = text.toLowerCase();
-                let result = '';
-                let newWord = true;
-                for (let i = 0; i < lowerText.length; i++) {
-                    const char = lowerText[i];
-                    if (newWord && char.match(/[\p{L}\p{N}]/u)) {
-                        result += char.toUpperCase();
-                        newWord = false;
-                    } else {
-                        result += char;
-                    }
-                    if (char.match(/[\s\n\t.,?!:;]/) || char.match(/[^\p{L}\p{N}]/u)) {
-                        newWord = true;
-                    }
-                }
-                return result;
+                if (!text) return '';
+                return text.normalize('NFC')
+                    .toLowerCase()
+                    .replace(/(^|\s)(\p{L})/gu, function(match, p1, p2) {
+                        return p1 + p2.toUpperCase();
+                    });
             }
 
             function toValidFilename(text) {
