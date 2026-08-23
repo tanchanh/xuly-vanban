@@ -113,7 +113,8 @@
             transition: border-color 0.2s, background-color 0.2s;
         }
 
-        textarea#input-text:focus {
+        textarea#input-text:focus,
+        input.text-field:focus {
             border-color: var(--primary);
         }
 
@@ -212,7 +213,50 @@
         }
 
         /* ==========================================================================
-           4. BẢNG TÙY CHỌN DẤU CHỌN & DẤU KIỂM
+           4. KHỐI TÌM KIẾM VÀ THAY THẾ
+           ========================================================================== */
+        .find-replace-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .find-replace-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+            gap: 0.8rem;
+            width: 100%;
+        }
+
+        input.text-field {
+            width: 100%;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 0.5rem 1rem;
+            font-size: 1.2rem;
+            font-family: var(--font-stack);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .find-replace-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        /* ==========================================================================
+           5. BẢNG TÙY CHỌN DẤU CHỌN & DẤU KIỂM
            ========================================================================== */
         .options-section {
             display: grid;
@@ -260,7 +304,7 @@
         }
 
         /* ==========================================================================
-           5. VÙNG KẾT QUẢ ĐẦU RA DUY NHẤT
+           6. VÙNG KẾT QUẢ ĐẦU RA DUY NHẤT
            ========================================================================== */
         .output-section {
             display: flex;
@@ -299,7 +343,7 @@
         }
 
         /* ==========================================================================
-           6. TOAST THÔNG BÁO
+           7. TOAST THÔNG BÁO
            ========================================================================== */
         .toast {
             position: fixed;
@@ -363,6 +407,24 @@
             <button type="button" class="btn btn-danger" id="btn-delete-all">
                 <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                 Xoá tất cả
+            </button>
+        </div>
+    </div>
+
+    <!-- KHỐI TÌM VÀ THAY THẾ -->
+    <div class="find-replace-panel">
+        <div class="find-replace-inputs">
+            <input type="text" id="find-input" class="text-field" placeholder="Từ cần tìm (Enter)...">
+            <input type="text" id="replace-input" class="text-field" placeholder="Thay bằng (Enter)...">
+        </div>
+        <div class="find-replace-controls">
+            <label class="custom-label">
+                <input type="checkbox" id="opt-find-case">
+                Phân biệt hoa / thường
+            </label>
+            <button type="button" class="btn btn-primary" id="btn-replace-action">
+                <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                Thay thế tất cả
             </button>
         </div>
     </div>
@@ -458,6 +520,11 @@
             const btnCopyResult = document.getElementById('btn-copy-result');
             const toastMessage = document.getElementById('toast-message');
 
+            const findInput = document.getElementById('find-input');
+            const replaceInput = document.getElementById('replace-input');
+            const optFindCase = document.getElementById('opt-find-case');
+            const btnReplaceAction = document.getElementById('btn-replace-action');
+
             const counterChar = document.getElementById('counter-char');
             const counterWord = document.getElementById('counter-word');
             const counterLine = document.getElementById('counter-line');
@@ -499,14 +566,12 @@
             function toTitleCase(text) {
                 if (!text) return '';
                 const norm = standardizeVietnamese(text).toLowerCase();
-                // Nhận diện chữ cái đầu từ ngay cả khi đứng sau các loại dấu ngoặc đơn/kép
                 return norm.replace(/(^|[\s\r\n(\[{"'“‘])([\p{L}])/gu, (match, p1, p2) => p1 + p2.toUpperCase());
             }
 
             function toSentenceCase(text) {
                 if (!text) return '';
                 const norm = standardizeVietnamese(text);
-                // Viết hoa chữ cái đầu câu kể cả khi có dấu ngoặc kép hoặc ký tự mở đầu
                 return norm.replace(/(^|[\r\n.!?…]+[\s"'(\[“‘]*)([\p{L}])/gu, (match, prefix, char) => prefix + char.toUpperCase());
             }
 
@@ -606,6 +671,68 @@
                     : contentLines;
             }
 
+            /* --- CHỨC NĂNG TÌM VÀ THAY THẾ AN TOÀN --- */
+            function executeFindReplace() {
+                const currentText = inputText.value;
+                if (!currentText) {
+                    showToast('Chưa có văn bản để thay thế!');
+                    return;
+                }
+
+                const findStr = findInput.value;
+                const replaceStr = replaceInput.value;
+
+                if (!findStr) {
+                    showToast('Vui lòng nhập từ cần tìm!');
+                    findInput.focus();
+                    return;
+                }
+
+                if (findStr === replaceStr) {
+                    showToast('Từ tìm và từ thay thế đang giống nhau!');
+                    return;
+                }
+
+                // Chuẩn hoá Unicode NFC cho từ tìm kiếm và văn bản để khớp chuẩn xác
+                const normCurrent = standardizeVietnamese(currentText);
+                const normFind = standardizeVietnamese(findStr);
+
+                // Escape ký tự đặc biệt để coi 100% là chữ thuần túy
+                const escapedFind = normFind.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const flags = optFindCase.checked ? 'g' : 'gi';
+                const regex = new RegExp(escapedFind, flags);
+
+                const matches = normCurrent.match(regex);
+                if (!matches || matches.length === 0) {
+                    showToast('Không tìm thấy từ cần thay thế!');
+                    return;
+                }
+
+                // Sử dụng callback function để tránh bẫy ký hiệu $ trong JavaScript
+                const newText = normCurrent.replace(regex, () => replaceStr);
+                inputText.value = newText;
+                processPipeline();
+                inputText.focus();
+
+                if (replaceStr.length === 0) {
+                    showToast(`Đã xoá ${matches.length} vị trí tìm thấy!`);
+                } else {
+                    showToast(`Đã thay thế thành công ${matches.length} vị trí!`);
+                }
+            }
+
+            btnReplaceAction.addEventListener('click', executeFindReplace);
+
+            // Bấm Enter trong ô tìm hoặc thay thế sẽ kích hoạt thay thế ngay
+            [findInput, replaceInput].forEach(inp => {
+                inp.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        executeFindReplace();
+                    }
+                });
+            });
+
             /* --- SỰ KIỆN TỰ ĐỘNG CHUYỂN ĐỔI --- */
             inputText.addEventListener('input', processPipeline);
             caseRadios.forEach(radio => radio.addEventListener('change', processPipeline));
@@ -677,7 +804,7 @@
                     }
                 }
 
-                if (document.activeElement !== inputText) {
+                if (document.activeElement !== inputText && document.activeElement !== findInput && document.activeElement !== replaceInput) {
                     const textData = (e.clipboardData || window.clipboardData)?.getData('text');
                     if (textData) {
                         e.preventDefault();
@@ -715,6 +842,8 @@
             /* --- NÚT XOÁ TẤT CẢ --- */
             btnDeleteAll.addEventListener('click', () => {
                 inputText.value = '';
+                findInput.value = '';
+                replaceInput.value = '';
                 processPipeline();
                 inputText.focus();
                 showToast('Đã xoá trắng nội dung!');
