@@ -380,7 +380,7 @@
 
     <!-- VÙNG NHẬP DỮ LIỆU -->
     <div class="input-section">
-        <textarea id="input-text" placeholder="Nhập, dán (Ctrl+V) hoặc kéo thả file văn bản vào đây..." autofocus></textarea>
+        <textarea id="input-text" placeholder="Nhập, dán (Ctrl+V) hoặc kéo thả file văn bản vào đây...&#10;(Kết quả chuyển đổi sẽ tự động hiển thị ở khung bên dưới)" autofocus></textarea>
         
         <div class="input-meta-bar">
             <div class="counters-group">
@@ -388,7 +388,7 @@
                 <span id="counter-word">0 từ</span>
                 <span id="counter-line">0 dòng</span>
             </div>
-            <span>Bấm Ctrl+V hoặc kéo thả file vào bất kỳ đâu</span>
+            <span>Hỗ trợ Ctrl+V & kéo thả file</span>
         </div>
 
         <div class="actions-bar">
@@ -476,11 +476,6 @@
             </label>
 
             <label class="custom-label">
-                <input type="checkbox" id="opt-replace-hyphen">
-                Thay các khoảng trắng bằng dấu trừ
-            </label>
-
-            <label class="custom-label">
                 <input type="checkbox" id="opt-alphanumeric">
                 Chỉ lấy chữ và số
             </label>
@@ -532,7 +527,6 @@
             const caseRadios = document.querySelectorAll('input[name="case-option"]');
             const optCleanSpaces = document.getElementById('opt-clean-spaces');
             const optRemoveAccents = document.getElementById('opt-remove-accents');
-            const optReplaceHyphen = document.getElementById('opt-replace-hyphen');
             const optAlphanumeric = document.getElementById('opt-alphanumeric');
             const optValidFilename = document.getElementById('opt-valid-filename');
             const optAddHashtag = document.getElementById('opt-add-hashtag');
@@ -657,15 +651,7 @@
                         .trim();
                 }
 
-                // BƯỚC 7: Thay các khoảng trắng bằng dấu trừ
-                if (optReplaceHyphen.checked) {
-                    contentLines = contentLines
-                        .split('\n')
-                        .map(line => line.trim().replace(/\s+/g, '-').replace(/-+/g, '-'))
-                        .join('\n');
-                }
-
-                // BƯỚC 8: Xuất kết quả hoàn chỉnh
+                // BƯỚC 7: Xuất kết quả hoàn chỉnh
                 singleOutput.textContent = hasHashtag
                     ? (contentLines ? `${contentLines}\n${hashtagLine}` : hashtagLine)
                     : contentLines;
@@ -693,11 +679,9 @@
                     return;
                 }
 
-                // Chuẩn hoá Unicode NFC cho từ tìm kiếm và văn bản để khớp chuẩn xác
                 const normCurrent = standardizeVietnamese(currentText);
                 const normFind = standardizeVietnamese(findStr);
 
-                // Escape ký tự đặc biệt để coi 100% là chữ thuần túy
                 const escapedFind = normFind.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const flags = optFindCase.checked ? 'g' : 'gi';
                 const regex = new RegExp(escapedFind, flags);
@@ -708,7 +692,6 @@
                     return;
                 }
 
-                // Sử dụng callback function để tránh bẫy ký hiệu $ trong JavaScript
                 const newText = normCurrent.replace(regex, () => replaceStr);
                 inputText.value = newText;
                 processPipeline();
@@ -723,7 +706,6 @@
 
             btnReplaceAction.addEventListener('click', executeFindReplace);
 
-            // Bấm Enter trong ô tìm hoặc thay thế sẽ kích hoạt thay thế ngay
             [findInput, replaceInput].forEach(inp => {
                 inp.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
@@ -736,7 +718,7 @@
             /* --- SỰ KIỆN TỰ ĐỘNG CHUYỂN ĐỔI --- */
             inputText.addEventListener('input', processPipeline);
             caseRadios.forEach(radio => radio.addEventListener('change', processPipeline));
-            [optCleanSpaces, optRemoveAccents, optReplaceHyphen, optAlphanumeric, optValidFilename, optAddHashtag]
+            [optCleanSpaces, optRemoveAccents, optAlphanumeric, optValidFilename, optAddHashtag]
                 .forEach(checkbox => checkbox.addEventListener('change', processPipeline));
 
             /* --- ĐỌC FILE TẬP TIN --- */
